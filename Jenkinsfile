@@ -5,9 +5,22 @@ pipeline {
             steps {
                 echo 'Running build automation'
                 echo 'Remove node_modules folder'
-                sh 'rm -rf node_modules'
-                sh './gradlew build --no-daemon'
-                archiveArtifacts artifacts: 'dist/trainSchedule.zip'
+                // sh 'rm -rf node_modules'
+                // sh './gradlew build --no-daemon'
+                // archiveArtifacts artifacts: 'dist/trainSchedule.zip'
+            }
+        }
+        stage('Build Docker Image') {
+            when {
+                branch 'master'
+            }
+            steps {
+                script {
+                    app = docker.build("stsybulniak/train-schedule")
+                    app.inside {
+                        sh 'echo $(curl localhost:8080)'
+                    }
+                }
             }
         }
         stage('DeployToStaging') {
