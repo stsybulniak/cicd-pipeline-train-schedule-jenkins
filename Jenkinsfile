@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    environment {
+        DOCKER_IMAGE_NAME = "stsybulniak/train-schedule"
+    }
     stages {
         stage('Build') {
             steps {
@@ -18,7 +21,7 @@ pipeline {
                 script {
                     app = docker.build("stsybulniak/train-schedule")
                     app.inside {
-                        sh 'echo $(curl localhost:8080)'
+                        sh 'echo Hello, world!'
                     }
                 }
             }
@@ -71,31 +74,19 @@ pipeline {
                 branch 'master'
             }
             steps {
-                input 'Does the staging environment look OK?'
+                input 'Deploy to Production?'
                 milestone(1)
-                // withCredentials([sshUserPrivateKey(credentialsId: 'ssh_staging', usernameVariable: 'USERNAME', passwordVariable: 'USERPASS')]) {
-                    sshPublisher(
-                        failOnError: true,
-                        continueOnError: false,
-                        publishers: [
-                            sshPublisherDesc(
-                                configName: 'prod-server',
-                                // sshCredentials: [
-                                //     username: "$USERNAME",
-                                //     encryptedPassphrase: "$USERPASS"
-                                // ], 
-                                transfers: [
-                                    sshTransfer(
-                                        sourceFiles: 'dist/trainSchedule.zip',
-                                        removePrefix: 'dist/',
-                                        remoteDirectory: '/tmp',
-                                        // execCommand: 'sudo /usr/bin/systemctl stop train-schedule && rm -rf /opt/train-schedule/* && unzip /tmp/trainSchedule.zip -d /opt/train-schedule && sudo /usr/bin/systemctl start train-schedule'
-                                    )
-                                ]
-                            )
-                        ]
-                    )
-                // }
+                
+                podTemplate(cloud: 'k8s master', yaml: readTrusted('train-schedule-kube.yml')) {
+                    node(POD_LABEL) {
+                        sh 'hostname'
+                    }
+                }
+                // kubernetesDeploy(
+                //     kubeconfigId: 'kubeconfig',
+                //     configs: 'train-schedule-kube.yml',
+                //     enableConfigSubstitution: true
+                // )
             }
         }
     }
