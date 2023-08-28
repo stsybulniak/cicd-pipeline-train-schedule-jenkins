@@ -8,9 +8,9 @@ pipeline {
             steps {
                 echo 'Running build automation'
                 echo 'Remove node_modules folder'
-                // sh 'rm -rf node_modules'
-                // sh './gradlew build --no-daemon'
-                // archiveArtifacts artifacts: 'dist/trainSchedule.zip'
+                sh 'rm -rf node_modules'
+                sh './gradlew build --no-daemon'
+                archiveArtifacts artifacts: 'dist/trainSchedule.zip'
             }
         }
         stage('Build Docker Image') {
@@ -70,12 +70,12 @@ pipeline {
             }
         }
         stage('DeployToProduction') {
-            when {
-                branch 'master'
-            }
+            // when {
+            //     branch 'master'
+            // }
             steps {
-                input 'Deploy to Production?'
-                milestone(1)
+                // input 'Deploy to Production?'
+                // milestone(1)
                 
                 podTemplate(cloud: 'k8s master', yaml: readTrusted('train-schedule-kube.yml')) {
                     node(POD_LABEL) {
