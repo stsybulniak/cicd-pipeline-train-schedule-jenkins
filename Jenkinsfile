@@ -76,17 +76,17 @@ pipeline {
             steps {
                 // input 'Deploy to Production?'
                 // milestone(1)
-                withKubeConfig([credentialsId: 'k8s-conf', serverUrl: 'http://10.0.0.10']) {
+                withKubeConfig([credentialsId: 'user1', serverUrl: 'https://api.k8s.my-company.com']) {
                     sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.26.2/bin/linux/amd64/kubectl"'
                     sh 'chmod u+x ./kubectl'
-                    sh 'kubectl get nodes'
+                    sh 'kubectl apply -f my-kubernetes-directory'
                 }
                 
                 // podTemplate(cloud: 'k8s master', yaml: readTrusted('train-schedule-kube.yml')) {
                 //     node(POD_LABEL) {
                 //         sh 'hostname'
                 //     }
-                }
+                // }
                 // kubernetesDeploy(
                 //     kubeconfigId: 'kubeconfig',
                 //     configs: 'train-schedule-kube.yml',
